@@ -114,7 +114,8 @@ const CameraData = mongoose.model('Database', cameraDataSchema);
 /**
  * Connect to MongoDB.
  */
-const MONGODB_URI = 'mongodb://localhost:27017/testhack';
+// const MONGODB_URI = 'mongodb://localhost:27017/testhack';
+const MONGODB_URI = 'mongodb://hack_db_Admin:hack_Admindb_pass75wordStr@ds127536.mlab.com:27536/hack-ads';
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useNewUrlParser', true);
@@ -243,12 +244,12 @@ const runDetectPeopleExample = async () => {
   //     getNextUrl();
   // }
 
-  function getNextUrl() {
+  async function getNextUrl() {
     const datain = allDatas.value[currentUrlCount++];
-    allDatas.value.forEach(async data => {
-      console.log('1', data.CameraID);
+    // allDatas.value.forEach(async data => {
+      console.log('1', datain.CameraID);
 
-      const imageUrl = data.ImageLink;
+      const imageUrl = datain.ImageLink;
       // const fileName = imageUrl.substring(imageUrl.lastIndexOf('/')+1);
       const fileName = imageUrl.split('/').reverse()[0];
       // console.log(imageUrl.split('/').reverse()[1]);
@@ -273,7 +274,7 @@ const runDetectPeopleExample = async () => {
         dateValue[1]
       );
       // console.log(currentDateTime);
-      console.log('122', data.CameraID);
+      console.log('122', datain.CameraID);
       const fileSavePath = `./fetchimages/${fileName}`;
       const res = await fetch(imageUrl);
       await new Promise((resolve, reject) => {
@@ -286,16 +287,20 @@ const runDetectPeopleExample = async () => {
           resolve();
         });
       });
-      console.log('33', data.CameraID);
+      console.log('33', datain.CameraID);
       console.log('1', fileName);
       const img = await cv.imread(fileSavePath);
-      // console.log('11 222233');
-      const minConfidence = 0.4;
-      // console.log('11 2');
+      console.log('11 222233');
+      const minConfidence = 0.3;
+      console.log('11 2');
       const predictions = await classifyImg(img).filter(
         res => res.confidence > minConfidence
       );
-      // console.log('11 3');
+      console.log('11 3 predictions');
+      // console.log(predictions);
+      if(predictions && predictions.length <= 0) {
+        console.log('predictions empty');
+      }
       predictions.forEach(async p => {
         console.log(p);
         const cameraGeo = {
@@ -321,10 +326,10 @@ const runDetectPeopleExample = async () => {
         // await data.save();
       });
       
-      if (currentUrlCount <= totalUrlCount) {
+      if (currentUrlCount <= (totalUrlCount - 1)) {
         getNextUrl();
     }
-    });
+    // });
   }
   getNextUrl();
   //   const imageUrl = 'https://s3-ap-southeast-1.amazonaws.com/mtpdm/2019-07-22/17-48/8702_1744_20190722174506_27f879.jpg';
@@ -405,4 +410,14 @@ const runDetectPeopleExample = async () => {
 };
 
 // runDetectDishesExample();
-runDetectPeopleExample();
+// runDetectPeopleExample();
+
+setInterval(function() {
+  runDetectPeopleExample();
+}, 30000);
+
+
+// 30000 - 0.5 Minute
+// 60000 - 1 Minute
+// 120000 - 2 Minute
+// 180000 - 3 Minute
